@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tambah Karyawan - Karya Jaya Las</title>
+    <style>
+        /* (sama seperti sebelumnya) */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>👤 <span>Tambah</span> Karyawan</h1>
+            <div class="sub">Karya Jaya Las Konstruksi · Admin Panel</div>
+        </div>
+
+        <!-- ALERT -->
+        <div id="alertBox" class="alert"></div>
+
+        <!-- FORM -->
+        <form id="formKaryawan">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nama">Nama Lengkap</label>
+                    <input type="text" id="nama" placeholder="Contoh: Radiatul Ramadhan" required />
+                </div>
+                <div class="form-group">
+                    <label for="email">Alamat Email</label>
+                    <input type="email" id="email" placeholder="karyawan@karyajayalas.com" required />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="password">Password Sementara</label>
+                    <input type="text" id="password" placeholder="Min. 6 karakter" required />
+                </div>
+                <div class="form-group">
+                    <label for="role">Role / Jabatan</label>
+                    <select id="role">
+                        <option value="User">User (Karyawan)</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Supervisor">Supervisor</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="tglBergabung">Tanggal Bergabung</label>
+                <input type="date" id="tglBergabung" required />
+            </div>
+
+            <!-- PREVIEW -->
+            <div id="previewCard" class="preview-card">
+                <p><strong>📋 Pratinjau Data Karyawan</strong></p>
+                <p id="previewText" style="margin-top:6px; color:#2d3748;"></p>
+            </div>
+
+            <!-- TOMBOL -->
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline" onclick="resetForm()">↺ Reset</button>
+                <button type="button" class="btn btn-primary" onclick="previewData()">📄 Pratinjau</button>
+                <button type="submit" class="btn btn-success">➕ Tambah Karyawan</button>
+            </div>
+        </form>
+
+        <div style="margin-top: 28px; text-align: right; border-top: 1px solid #e9ecef; padding-top: 18px;">
+            <a href="#" style="color:#f39c12; font-weight:600; text-decoration:none; font-size:14px;">
+                ← Kembali ke Daftar Semua Karyawan
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Set default tanggal hari ini
+        document.addEventListener('DOMContentLoaded', function () {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('tglBergabung').value = today;
+            const alert = document.getElementById('alertBox');
+            alert.style.display = 'none';
+            alert.className = 'alert';
+        });
+
+        // Preview data
+        function previewData() {
+            const nama = document.getElementById('nama').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const role = document.getElementById('role').value;
+            const tgl = document.getElementById('tglBergabung').value;
+
+            if (!nama || !email || !tgl) {
+                showAlert('Harap isi Nama, Email, dan Tanggal Bergabung terlebih dahulu.', 'danger');
+                return;
+            }
+
+            const previewCard = document.getElementById('previewCard');
+            const previewText = document.getElementById('previewText');
+
+            previewText.innerHTML = `
+                <strong>Nama:</strong> ${nama} <br />
+                <strong>Email:</strong> ${email} <br />
+                <strong>Role:</strong> ${role} <br />
+                <strong>Bergabung:</strong> ${formatTanggal(tgl)}
+            `;
+
+            previewCard.classList.add('show');
+            hideAlert();
+        }
+
+        function formatTanggal(dateStr) {
+            if (!dateStr) return '-';
+            const parts = dateStr.split('-');
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        function showAlert(message, type = 'success') {
+            const alert = document.getElementById('alertBox');
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+        }
+
+        function hideAlert() {
+            const alert = document.getElementById('alertBox');
+            alert.style.display = 'none';
+            alert.className = 'alert';
+        }
+
+        function resetForm() {
+            document.getElementById('formKaryawan').reset();
+            document.getElementById('previewCard').classList.remove('show');
+            hideAlert();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('tglBergabung').value = today;
+        }
+
+        // ⬇️⬇️⬇️ SUBMIT FORM ⬇️⬇️⬇️
+        document.getElementById('formKaryawan').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const nama = document.getElementById('nama').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const role = document.getElementById('role').value;
+            const tgl = document.getElementById('tglBergabung').value;
+
+            if (!nama || !email || !password || !tgl) {
+                showAlert('Semua field wajib diisi!', 'danger');
+                return;
+            }
+
+            if (password.length < 6) {
+                showAlert('Password minimal 6 karakter.', 'danger');
+                return;
+            }
+
+            // KIRIM KE SERVER
+            fetch('/api/karyawan', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    name: nama,              // ✅ PAKAI 'name' karena tabel users pakai 'name'
+                    email: email,
+                    password: password,
+                    role: role
+                    // tglBergabung: tgl    // ❌ HAPUS karena tabel users tidak ada kolom ini
+                })
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(err => Promise.reject(err));
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    showAlert(`✅ Karyawan "${nama}" berhasil ditambahkan!`, 'success');
+                    resetForm();
+                } else {
+                    showAlert(data.message || 'Gagal menambahkan karyawan.', 'danger');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                showAlert('Terjadi kesalahan server.', 'danger');
+            });
+        });
+    </script>
+</body>
+</html>
